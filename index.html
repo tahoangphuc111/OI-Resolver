@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OI Resolver</title>
+    <link rel="stylesheet" href="src/styles.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <script src="src/script.js"></script>
+</head>
+
+<body>
+    <div id="input-screen" class="screen">
+        <div class="center">
+            <div class="title-container">
+                <img src="assets/icon.svg" class="title-icon" alt="Logo">
+                <h1 id="title" class="title">OI Resolver</h1>
+            </div>
+            <div class="gap"></div>
+            <div id="form" class="form-container">
+                <div class="form-component">
+                    <label for="option">Option</label>
+                    <select id="option" onchange="changeOption()">
+                        <option value="json">Raw JSON</option>
+                        <option value="codeforces">Codeforces API</option>
+                    </select>
+                </div>
+                <div id="input-json" class="input-container">
+                    <label class="input-file">
+                        Upload a JSON file
+                        <input id="file" type="file" accept="application/json" onchange="readJSON()">
+                    </label>
+                </div>
+                <div id="input-codeforces" class="input-container" style="display: none;">
+                    <div class="form-component">
+                        <label for="contestId">Contest ID</label>
+                        <input type="number" id="contestId" placeholder="Enter Contest ID" onchange="fetchContest()">
+                    </div>
+                    <div class="form-component">
+                        <label for="apiKey"><a href="https://codeforces.com/settings/api" target="_blank">API
+                                Key</a></label>
+                        <input type="password" id="apiKey" placeholder="Enter API Key" onchange="fetchContest()">
+                    </div>
+                    <div class="form-component">
+                        <label for="apiSecret"><a href="https://codeforces.com/settings/api" target="_blank">API
+                                Secret</a></label>
+                        <input type="password" id="apiSecret" placeholder="Enter API Secret" onchange="fetchContest()">
+                    </div>
+                </div>
+                <div class="form-component">
+                    <label for="json-data">Contest data (JSON format)</label>
+                    <textarea id="json-data" spellcheck="false"></textarea>
+                </div>
+                <button onclick="startContest()">Submit</button>
+            </div>
+            <div class="footer">
+                <span>Made by Kitsune</span>
+                <span class="separator">•</span>
+                <a href="https://tloi.io.vn/" target="_blank">About Us</a>
+            </div>
+        </div>
+    </div>
+    <div id="splash-screen" class="screen hidden">
+        <div class="center">
+            <h1 id="contest-name" class="title"></h1>
+            <div class="gap"></div>
+            <h2 id="pending-count" class="subtitle"></h2>
+            <div class="gap"></div>
+            <div id="start-instruction" class="instruction">Press Enter to start resolver</div>
+        </div>
+    </div>
+    <img src="assets/icon.svg" class="watermark hidden" alt="Watermark">
+    <div id="output-screen" class="screen hidden">
+        <div id="header" class="header">
+            <div class="header-rank">Rank</div>
+            <div class="header-logo"></div>
+            <div class="header-name">Name</div>
+            <div class="header-score">Score</div>
+            <div class="header-time">Time</div>
+        </div>
+        <div id="standings" class="standings"></div>
+    </div>
+</body>
+
+</html>
