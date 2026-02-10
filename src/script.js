@@ -75,15 +75,70 @@ function changeOption() {
     }
 }
 
-function readJSON() {
-    const file = document.getElementById("file").files[0];
+// Drag and Drop Logic
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file');
+
+if (dropZone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('drag-active');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('drag-active');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+}
+
+function handleFiles(files) {
+    if (files.length > 0) {
+        // Update input file manually if needed, or just process
+        // Note: setting fileInput.files is restricted for security but we can process directly
+        fileInput.files = files; // This might work in modern browsers for dropped files if same origin, but often read-only.
+        // Better: just call read content
+        readJSON(files[0]);
+    }
+}
+
+function readJSON(droppedFile = null) {
+    const file = droppedFile || document.getElementById("file").files[0];
     if (!file) {
         alert("Please select a file");
         return;
     }
 
+    // Update label to show filename
+    if (dropZone) {
+        dropZone.innerHTML = `Selected: <strong>${file.name}</strong>`;
+    }
+
     const jsonText = document.getElementById("json-data");
-    if (jsonText.value) {
+    // If overwrite check needed (skipped for drop convenience, or we can add it back)
+    if (jsonText.value.trim() !== "") {
         if (!confirm("Are you sure you want to overwrite the current data?")) {
             return;
         }
@@ -403,7 +458,6 @@ function startContest() {
 
     document.getElementById("input-screen").classList.toggle("hidden");
     document.getElementById("splash-screen").classList.toggle("hidden");
-    document.querySelector(".watermark").classList.remove("hidden");
     currentScreen = 1;
 
     let pendingSubmissions = 0;
@@ -803,6 +857,162 @@ function run(auto = false) {
         }
     });
 }
+const helpContent = `
+# OI Standings Resolver
+
+The OI Standings Resolver is a tool designed to simulate the frozen period of an OI-style contest, revealing the final submissions' results in an interesting way before displaying the final standings. The concept and design are inspired by the [official ICPC Resolver](https://tools.icpc.global/resolver/) and [neoSaris - ICPC Standings Resolver](https://github.com/huronOS/neoSaris).
+
+
+Unlike ICPC-style contests, OI-style contests use partial scoring, where each problem may have multiple subtasks, and contestants receive a score based on the number of test cases or subtasks they solve. Then, the contestants are ranked by their total score in descending order. If there is a tie, contestants are ranked by the total time in ascending order. The total time is the sum of time consumed for each problem. The time consumed for a problem is the time elapsed from the start of the contest until the first highest positive score submission plus a penalty (usually 0 or 20 minutes) for each submission before that.
+
+## Usage
+
+### Open the tool
+
+You can access the tool at [oi-resolver.netlify.app](https://oi-resolver.netlify.app) or [kitsunehivern.github.io/OI-Resolver](https://kitsunehivern.github.io/OI-Resolver). You can either use it online or clone the repository and open the \`index.html\` file in your browser.
+
+### Prepare the data
+
+You can choose between two ways to input the data:
+
+#### Raw JSON
+
+The input JSON should have the format as the following example:
+
+\`\`\`json
+{
+  "contest": {
+    "name": "Blue Contest",
+    "durationMinutes": 60,
+    "freezeDurationMinutes": 30,
+    "penaltyMinutes": 20
+  },
+  "problems": [
+    {
+      "index": "A",
+      "points": 100
+    }
+  ],
+  "contestants": [
+    {
+      "name": "Kitsune",
+      "logo": "img/sensei.png",
+      "rank": "grandmaster"
+    },
+    {
+      "name": "Hoshino",
+      "logo": "img/hoshino.png",
+      "rank": "specialist"
+    },
+    {
+      "name": "Hina",
+      "logo": "img/hina.png",
+      "rank": "candidate master"
+    }
+  ],
+  "submissions": [
+    {
+      "name": "Kitsune",
+      "problemIndex": "A",
+      "submitMinutes": 10,
+      "points": 30
+    },
+    {
+      "name": "Hina",
+      "problemIndex": "A",
+      "submitMinutes": 20,
+      "points": 50
+    },
+    {
+      "name": "Hoshino",
+      "problemIndex": "A",
+      "submitMinutes": 30,
+      "points": 70
+    },
+    {
+      "name": "Kitsune",
+      "problemIndex": "A",
+      "submitMinutes": 50,
+      "points": 100
+    }
+  ]
+}
+\`\`\`
+
+Explanation:
+- \`contest\`: Information of the contest.
+    - \`contest.name\`: Name of the contest.
+    - \`contest.durationMinutes\`: Duration of the contest in minutes.
+    - \`contest.freezeDurationMinutes\`: Duration of the frozen period in minutes.
+    - \`contest.penaltyMinutes\`: Penalty in minutes for each submission before the first highest positive score submission for each problem.
+- \`problems\`: Information of the problems.
+    - \`problems.index\`: Index of the problem.
+    - \`problems.points\`: Maximum points for the problem.
+- \`contestants\`: Information of the contestants.
+    - \`contestants.name\`: Name of the contestant.
+    - \`contestants.logo\` (*optional*): Path to the logo of the contestant.
+    - \`contestants.rank\` (*optional*): Codeforces rank of the contestant.
+- \`submissions\`: Information of the submissions.
+    - \`submissions.name\`: Name of the contestant.
+    - \`submissions.problemIndex\`: Index of the problem.
+    - \`submissions.submitMinutes\`: Time elapsed from the start of the contest until the submission in minutes.
+    - \`submissions.points\`: Score of the submission.
+
+**Make sure the \`submissions\` array is sorted in ascending order based on the submit time (measured in seconds)**.
+
+Interestingly, if the data is set up correctly, the tool can also be used for ICPC-style contests.
+
+#### Codeforces contest
+
+You can only use this for Codeforces contests where **you are the manager**. You need to provide the contest ID along with your API key and secret from the [Codeforces API](https://codeforces.com/settings/api). After you input the data, the tool will fetch contest data and convert it into the above JSON format. It supports both OI and ICPC-style contests.
+
+When using the Codeforces API, the maximum points for each problem are not included in the response for private contests. The tool will set it to 100 for OI-style contests and 1 for ICPC-style contests. You can manually change it in the JSON data if needed.
+
+### Control the resolver
+
+If you successfully click the submit button, a splash screen will appear. Press \`Enter\` to start the resolver. Then, you can use the following keys:
+- Press \`N\` to move to the **N**ext submission.
+- Press \`A\` to **A**uto-play the resolver.
+- Press \`R\` to **R**eset the resolver.
+
+## Notes
+
+- The tool is designed to be used on a desktop or laptop. It may not work well on mobile devices.
+
+- If there are many problems, the content of the point box may overflow. You can try zooming out the page to fix this.
+
+- If smooth scrolling is not working, enable it in the browser settings (e.g. \`chrome://flags/#smooth-scrolling\`).
+
+- If the contestant's logo is not displayed, make sure the path is correct, or try pressing \`R\` to reset the resolver.
+
+## Contributing
+
+If you find any bugs or have any suggestions, feel free to open an issue or a pull request.
+`;
+
+function openHelp() {
+    const modal = document.getElementById("help-modal");
+    const content = document.getElementById("help-text");
+
+    modal.classList.remove("hidden");
+
+    if (content.innerHTML === "Loading..." || content.innerHTML === "") {
+        content.innerHTML = marked.parse(helpContent);
+    }
+}
+
+function closeHelp() {
+    const modal = document.getElementById("help-modal");
+    modal.classList.add("hidden");
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function (event) {
+    const modal = document.getElementById("help-modal");
+    if (event.target === modal) {
+        closeHelp();
+    }
+});
 
 let isRunning = false;
 
@@ -843,46 +1053,4 @@ document.addEventListener("keydown", async function (event) {
 
     isRunning = false;
 });
-
-/* Auto-Fit Logic */
-function autoFit() {
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(screen => {
-        if (getComputedStyle(screen).display === 'none') return;
-
-        const center = screen.querySelector('.center');
-        if (!center) return;
-
-        // Reset to measure natural size
-        center.style.transform = 'none';
-
-        const contentWidth = center.scrollWidth;
-        const contentHeight = center.scrollHeight;
-        const screenWidth = screen.clientWidth;
-        const screenHeight = screen.clientHeight;
-
-        const scaleX = (screenWidth - 40) / contentWidth;
-        const scaleY = (screenHeight - 40) / contentHeight;
-
-        const scale = Math.min(scaleX, scaleY, 1);
-
-        if (scale < 1) {
-            center.style.transform = `scale(${scale})`;
-            center.style.transformOrigin = 'center center';
-        }
-    });
-}
-
-// Optimize with ResizeObserver
-const resizeObserver = new ResizeObserver(entries => {
-    // Debounce or just call autoFit
-    requestAnimationFrame(autoFit);
-});
-
-// Observe screens or body
-resizeObserver.observe(document.body);
-
-window.addEventListener('resize', autoFit);
-window.addEventListener('load', autoFit);
-// Removed setInterval
 

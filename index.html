@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OI Resolver</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="src/styles.css">
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <script src="src/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
     <div id="input-screen" class="screen">
         <div class="center">
             <div class="title-container">
-                <img src="assets/icon.svg" class="title-icon" alt="Logo">
                 <h1 id="title" class="title">OI Resolver</h1>
             </div>
             <div class="gap"></div>
@@ -27,7 +27,7 @@
                     </select>
                 </div>
                 <div id="input-json" class="input-container">
-                    <label class="input-file">
+                    <label id="drop-zone" class="input-file">
                         Upload a JSON file
                         <input id="file" type="file" accept="application/json" onchange="readJSON()">
                     </label>
@@ -58,6 +58,8 @@
                 <span>Made by Kitsune</span>
                 <span class="separator">•</span>
                 <a href="https://tloi.io.vn/" target="_blank">About Us</a>
+                <span class="separator">•</span>
+                <a href="#" onclick="openHelp(); return false;">Help</a>
             </div>
         </div>
     </div>
@@ -68,18 +70,35 @@
             <h2 id="pending-count" class="subtitle"></h2>
             <div class="gap"></div>
             <div id="start-instruction" class="instruction">Press Enter to start resolver</div>
+            <div class="gap"></div>
+            <div class="shortcuts-instruction">
+                <div class="shortcut-item"><span class="key">N</span> Next Step</div>
+                <div class="shortcut-item"><span class="key">A</span> Auto Play</div>
+                <div class="shortcut-item"><span class="key">R</span> Replay</div>
+            </div>
         </div>
     </div>
-    <img src="assets/icon.svg" class="watermark hidden" alt="Watermark">
     <div id="output-screen" class="screen hidden">
-        <div id="header" class="header">
-            <div class="header-rank">Rank</div>
-            <div class="header-logo"></div>
-            <div class="header-name">Name</div>
-            <div class="header-score">Score</div>
-            <div class="header-time">Time</div>
+        <div id="scaler-container">
+            <div id="scaler-content">
+                <div id="header" class="header">
+                    <div class="header-rank">Rank</div>
+                    <div class="header-logo"></div>
+                    <div class="header-name">Name</div>
+                    <div class="header-score">Score</div>
+                    <div class="header-time">Time</div>
+                </div>
+                <div id="standings" class="standings"></div>
+            </div>
         </div>
-        <div id="standings" class="standings"></div>
+    </div>
+    </div>
+    <div id="help-modal" class="screen hidden" style="z-index: 2000;">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeHelp()">&times;</span>
+            <div id="help-text" class="markdown-body">Loading...</div>
+        </div>
+    </div>
     </div>
 </body>
 
